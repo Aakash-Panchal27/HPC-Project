@@ -165,7 +165,7 @@ int main()
     // Compress-------------------------------------------------
     
     // Idk why
-    //total_bits--;
+    total_bits--;
 
     // Decompress---------------------------------------------------
     start = chrono::high_resolution_clock::now();
