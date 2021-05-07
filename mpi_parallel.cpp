@@ -1,7 +1,9 @@
 /*
+Please check out ReadMe file first.
+
 Commands to compile and run this code:
 
-Compile: mpicxx -std=gnu++11 parallel_mpi.cpp
+Compile: mpicxx -std=gnu++11 mpi_parallel.cpp
 Run: mpirun -machinefile machines -np {no_of_cores} ./a.out
 
 Note: Replace {no_of_cores} with the number of cores you want to run the code with.

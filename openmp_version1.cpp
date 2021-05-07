@@ -1,4 +1,6 @@
 /*
+Please check out ReadMe file first.
+
 Commands to compile and run this code:
 
 Compile: g++ -o tv1.o -fopenmp -std=gnu++11 openmp_version1.cpp

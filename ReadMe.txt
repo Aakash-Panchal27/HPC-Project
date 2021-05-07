@@ -11,8 +11,8 @@ OpenMP parallel code file names:
 These two files are two versions of parallel codes, using OpenMP, as discussed in the report.
 
 MPI parallel code:
-1. mpi_parallel.cpp
-2. mpi_data_gen_code.cpp
+1. mpi_parallel.cpp ( main code )
+2. mpi_data_gen_code.cpp ( used to generate data for analysis)
 Use .bashrc and machines file (provided with codes) when running this code.
 In MPI, to take average over many experiments we had to write a python script mpi_data_generator.py (which is also submitted).
 

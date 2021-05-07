@@ -1,4 +1,6 @@
 /*
+Please check out ReadMe file first.
+
 Commands to compile and run this code:
 
 Compile: g++ -o test.o -fopenmp -std=gnu++11 serial.cpp
@@ -82,7 +84,7 @@ int main()
         unsigned char* buffer = new unsigned char[file_size];
         file.read((char*)buffer, file_size);
         file.close();
-        // Create frequency table--------------------------------------------------
+        // Create frequency table--------------------------------------------------START
         auto start = chrono::high_resolution_clock::now();
 
         int freq[256] = {0};
@@ -94,9 +96,9 @@ int main()
           chrono::duration_cast<chrono::nanoseconds>(end - start).count();
         total_time *= 1e-9;
         freq_table_time += total_time;
-        // Create frequency table--------------------------------------------------
+        // Create frequency table--------------------------------------------------END
 
-        // Create huffman tree-----------------------------------------------------
+        // Create huffman tree-----------------------------------------------------START
         start = chrono::high_resolution_clock::now();
 
         priority_queue<node*, vector<node*>, comparator> container;
@@ -133,9 +135,9 @@ int main()
           chrono::duration_cast<chrono::nanoseconds>(end - start).count();
         total_time *= 1e-9;
         huffman_tree_time += total_time;
-        // Create huffman tree-------------------------------------------------
+        // Create huffman tree--------------------------------------------------END
 
-        // Creating Hashtable of encodes----------------------------------------
+        // Create Hashtable of encodes------------------------------------------START
         start = chrono::high_resolution_clock::now();
 
         // Create hashtable so that we don't have to traverse the tree again and again
@@ -148,9 +150,9 @@ int main()
           chrono::duration_cast<chrono::nanoseconds>(end - start).count();
         total_time *= 1e-9;
         hashtable_time += total_time;
-        // Creating Hashtable of encodes----------------------------------------
+        // Create Hashtable of encodes--------------------------------------------END
 
-        // Compress--------------------------------------------------
+        // Compression------------------------------------------------------------START
         start = chrono::high_resolution_clock::now();
 
         int idx = 7;
@@ -191,9 +193,9 @@ int main()
         compression_time += total_time;
 
         delete[] buffer;
-        // Compress----------------------------------------------------
+        // Compression---------------------------------------------------------END
         
-        // Decompress---------------------------------------------------
+        // Decompression-------------------------------------------------------START
         start = chrono::high_resolution_clock::now();
         
         int comp_file_size = comp_file.length();
@@ -229,7 +231,7 @@ int main()
         decompressed.write((char*)buffer, byte_no);
         decompressed.close();
         delete[] buffer;
-        // Decompress-----------------------------------------------------------
+        // Decompression----------------------------------------------------------END
 
         clock_gettime(CLOCK_MONOTONIC, &whole_end);
         total_time = (whole_end.tv_sec - whole_start.tv_sec) * 1e9;

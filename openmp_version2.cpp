@@ -1,9 +1,11 @@
 /*
+Please check out ReadMe file first.
+
 Commands to compile and run this code:
 
 Compile: g++ -o tv2.o -fopenmp -std=gnu++11 openmp_version2.cpp
 Run: ./tv2.o
-
+Version2 as explained in the report
 */
 
 #include<bits/stdc++.h>
