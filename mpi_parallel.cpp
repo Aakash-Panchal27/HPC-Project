@@ -66,6 +66,7 @@ int main(int argc, char** argv)
 {
     string filename = "bonsai.raw";
 
+    // To store times for different steps
     long double freq_table_time, huffman_tree_time, hashtable_time, compression_time, decompression_time, whole_time;
     freq_table_time = huffman_tree_time = hashtable_time = compression_time = decompression_time = whole_time = 0;
     
@@ -78,9 +79,8 @@ int main(int argc, char** argv)
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &proc_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &total_cores);
-    
-    MPI_Barrier(MPI_COMM_WORLD);
 
+    // Read file into buffer and find its size
     ifstream file(filename, ios::in | ios::binary);
     file.seekg (0, file.end);
     int file_size = file.tellg();
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
     
     auto end = chrono::high_resolution_clock::now();
     auto start = chrono::high_resolution_clock::now();
-    // Create frequency table in Parallel--------------------------------------------------START
+    // Create frequency table in Parallel-----------------------------------------------------START
     if(proc_rank == 0)
         start = chrono::high_resolution_clock::now();
     
@@ -113,6 +113,7 @@ int main(int argc, char** argv)
     MPI_Status status;
     
     if(proc_rank == 0) {
+    	// Receive frequency tables from all cores other than core 0
         for(int i = 1; i < total_cores; i++) {
             int temp_buff[256];
             MPI_Recv(temp_buff, 256, MPI_INT, i, 0, MPI_COMM_WORLD, &status);
@@ -123,6 +124,7 @@ int main(int argc, char** argv)
             MPI_Send(freq, 256, MPI_INT, i, 1, MPI_COMM_WORLD);
     }
     
+    // Send completed freq table to all cores to proceed for next steps
     if(proc_rank != 0)
         MPI_Recv(freq, 256, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
     
@@ -133,12 +135,13 @@ int main(int argc, char** argv)
     total_time *= 1e-9;
         freq_table_time += total_time;
     }
-    // Create frequency table--------------------------------------------------END
+    // Create frequency table-----------------------------------------------------------------END
     
-    // Create huffman tree-----------------------------------------------------START
+    // Create huffman tree--------------------------------------------------------------------START
     if(proc_rank == 0)
         start = chrono::high_resolution_clock::now();
     
+    // Standard algo
     priority_queue<node*, vector<node*>, comparator> container;
     
     for(int i = 0; i < 256; i++)
@@ -175,16 +178,17 @@ int main(int argc, char** argv)
     total_time *= 1e-9;
         huffman_tree_time += total_time;
     }
-    // Create huffman tree--------------------------------------------------END
+    // Create huffman tree--------------------------------------------------------------------END
     
-    // Creating Hashtable of encodes----------------------------------------START
+    // Create Hashtable of encodes------------------------------------------------------------START
     if(proc_rank == 0)
         start = chrono::high_resolution_clock::now();
     
+    // Create hashtable so that we don't have to traverse the tree again and again
     int ans = 0;
     pair<int, int> encode[256];
     obtain_huffmancodes(root, ans, encode);
-    //for(auto it:encode)cout << it.second << endl;
+    
     if(proc_rank == 0) {
         end = chrono::high_resolution_clock::now();
         double total_time =  
@@ -192,13 +196,13 @@ int main(int argc, char** argv)
     total_time *= 1e-9;
         hashtable_time += total_time;
     }
-    // Creating Hashtable of encodes----------------------------------------END
+    // Create Hashtable of encodes------------------------------------------------------------END
     
-    // Compress ----------------------------------------------------------------START
+    // Compression ---------------------------------------------------------------------------START
     if(proc_rank == 0)
         start = chrono::high_resolution_clock::now();
     int no_of_chunks = file_size / chunk_size;
-    //vector<ustring> comp_chunks;
+    
     unsigned char **comp_chunks;
     vector<unsigned int> comp_chunk_size;
     
@@ -236,6 +240,7 @@ int main(int argc, char** argv)
         comp_data += c;
     }
     int cur_byte = (total_bits + 7) / 8;
+    // Send compressed parts to root core 0
     if(proc_rank != 0) {
         MPI_Send(&total_bits, 1, MPI_INT, 0, 2, MPI_COMM_WORLD);
         MPI_Send(comp_data.c_str(), cur_byte, MPI_UNSIGNED_CHAR, 0, 3, MPI_COMM_WORLD);
@@ -269,10 +274,10 @@ int main(int argc, char** argv)
     // free the buffer
     delete[] buffer;
     
-    // Compressed ----------------------------------------------------------------END
+    // Compression ------------------------------------------------------------------------END
     
     
-    // Decompress---------------------------------------------------------------START
+    // Decompression ----------------------------------------------------------------------START
     if(proc_rank == 0) {
         start = chrono::high_resolution_clock::now();
         buffer = new unsigned char[file_size];
@@ -301,7 +306,7 @@ int main(int argc, char** argv)
                 total_bits--;
             }
         }
-        // send decompressed
+        // Send decompressed part
         MPI_Send(decomp_buffer, byte_no, MPI_UNSIGNED_CHAR, 0, 6, MPI_COMM_WORLD);
     }
     else {
@@ -324,6 +329,7 @@ int main(int argc, char** argv)
                 total_bits--;
             }
         }
+        // Receive decompressed data parts
         for(int i = 1; i < total_cores; i++) {
             int offset = i * chunk_size;
             MPI_Recv(buffer + offset, chunk_size, MPI_UNSIGNED_CHAR, i, 6, MPI_COMM_WORLD, &status);
@@ -337,6 +343,7 @@ int main(int argc, char** argv)
     total_time *= 1e-9;
         decompression_time += total_time;
 
+        // Finally create a decompressed file
         std::ofstream of_c(decompressed_file_name, std::ios_base::binary);
         of_c.write((char *)buffer, file_size);
         of_c.close();
@@ -344,7 +351,7 @@ int main(int argc, char** argv)
     }
     
     MPI_Finalize();
-    // Decompress-----------------------------------------------------------END
+    // Decompression-------------------------------------------------------------------------END
 
     if(proc_rank == 0) {
         clock_gettime(CLOCK_MONOTONIC, &whole_end);

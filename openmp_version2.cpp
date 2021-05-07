@@ -65,6 +65,7 @@ int main()
 
     // Stores the no. of times we will repeat the whole procedure to measure the time accurately by taking average in the end.
     int runs = 10;
+    // To store times for different steps
     long double freq_table_time, huffman_tree_time, hashtable_time, compression_time, decompression_time, whole_time;
     freq_table_time = huffman_tree_time = hashtable_time = compression_time = decompression_time = whole_time = 0;
     bool printed = false;
@@ -85,6 +86,7 @@ int main()
                 struct timespec whole_start, whole_end;
                 clock_gettime(CLOCK_MONOTONIC, &whole_start);
                 
+                // Read file into buffer and find its size
                 ifstream file(filename, ios::in | ios::binary);
                 file.seekg (0, file.end);
                 int file_size = file.tellg();
@@ -133,6 +135,7 @@ int main()
             
                 priority_queue<node*, vector<node*>, comparator> container;
             
+                // Standard algo
                 for(int i = 0; i < 256; i++)
                 {
                     if(freq[i] > 0) {
@@ -169,6 +172,7 @@ int main()
                 // Create Hashtable of encodes------------------------------------------------------------------START
                 clock_gettime(CLOCK_MONOTONIC, &start);
             
+                // Create hashtable so that we don't have to traverse the tree again and again
                 int ans = 0;
                 pair<int, int> encode[256];
                 obtain_huffmancodes(root, ans, encode);
